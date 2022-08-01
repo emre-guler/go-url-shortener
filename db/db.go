@@ -3,9 +3,10 @@ package db
 import (
 	"context"
 	"fmt"
-
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
+	"io/ioutil"
+	"os"
 )
 
 // TODO Use Google Sheets as DB.
@@ -17,18 +18,21 @@ const (
 
 func CheckShortPath(path string) bool {
 	ctx := context.Background()
-	service, serviceError := sheets.NewService(ctx, option.WithAPIKey("YOUR_API_KEY_HERE"))
+	pwd, _ := os.Getwd()
+	jsonFile, _ := ioutil.ReadFile(pwd + "/db/credentials.json")
+	service, serviceError := sheets.NewService(ctx, option.WithCredentialsJSON(jsonFile))
 
 	if serviceError != nil {
 		fmt.Println("Unable to connect service, please try again later!1")
 		return false
 	}
 
-	response, responsError := service.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
+	var deneme = service.Spreadsheets.Values.Get(spreadsheetId, readRange)
+	response, responseError := deneme.Do()
 
-	if responsError != nil {
+	if responseError != nil {
 		fmt.Println("Unable to connect service, please try again later!2")
-		fmt.Println(responsError)
+		fmt.Println(responseError)
 		return false
 	}
 

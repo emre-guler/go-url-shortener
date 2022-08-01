@@ -21,7 +21,7 @@ func main() {
 		fmt.Println("Enter the path you want: ")
 		guestShortPath, _ := readerObject.ReadString('\n')
 		var currentUrl = shortUrl + guestShortPath
-		if validation.IsValidUrl(guestShortPath) {
+		if validation.IsValidUrl(currentUrl) {
 			fmt.Println("Checking db for availability...")
 			if db.CheckShortPath(guestShortPath) {
 				if db.SaveShortPath(guestShortPath, currentUrl, guestLongUrl) {
