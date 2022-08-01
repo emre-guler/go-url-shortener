@@ -3,46 +3,42 @@ package db
 import (
 	"context"
 	"fmt"
-	"google.golang.org/api/option"
-	"google.golang.org/api/sheets/v4"
 	"io/ioutil"
 	"os"
+
+	"google.golang.org/api/option"
+	"google.golang.org/api/sheets/v4"
 )
 
 // TODO Use Google Sheets as DB.
 // TODO Use Redis for caching.
 const (
 	spreadsheetId = "SHEET_ID_HERE"
-	readRange     = "A:B"
 )
 
 func CheckShortPath(path string) bool {
+	const readRange string = "A"
 	ctx := context.Background()
+
 	pwd, _ := os.Getwd()
-	jsonFile, _ := ioutil.ReadFile(pwd + "/db/credentials.json")
-	service, serviceError := sheets.NewService(ctx, option.WithCredentialsJSON(jsonFile))
+	credentialsJson, _ := ioutil.ReadFile(pwd + "/db/credentials.json")
+	service, serviceError := sheets.NewService(ctx, option.WithCredentialsJSON(credentialsJson))
 
 	if serviceError != nil {
-		fmt.Println("Unable to connect service, please try again later!1")
+		fmt.Println("Unable connect to service, please try again later!")
 		return false
 	}
 
-	var deneme = service.Spreadsheets.Values.Get(spreadsheetId, readRange)
-	response, responseError := deneme.Do()
+	response, responseError := service.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
 
 	if responseError != nil {
-		fmt.Println("Unable to connect service, please try again later!2")
+		fmt.Println("Unable access to db, please try again later!")
 		fmt.Println(responseError)
 		return false
 	}
 
-	if len(response.Values) == 0 {
-		fmt.Print("No data found.")
-		return false
-	} else {
-		for _, row := range response.Values {
-			fmt.Printf("%s, %s\n", row[0], row[1])
-		}
+	for _, row := range response.Values {
+		fmt.Printf("%s \n", row[0])
 	}
 
 	return false
