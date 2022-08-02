@@ -12,12 +12,13 @@ import (
 
 // TODO Use Google Sheets as DB.
 // TODO Use Redis for caching.
+// TODO Use Environment Variables for credentials and SpreadsheetId
 const (
-	spreadsheetId = "SHEET_ID_HERE"
+	spreadsheetId = "1P7Me-PLTskt4v-LLDxnCu92X30Z0p7M4DhzWLS6hDF4"
 )
 
 func CheckShortPath(path string) bool {
-	const readRange string = "A"
+	const readRange string = "A:A" // Select's short paths
 	ctx := context.Background()
 
 	pwd, _ := os.Getwd()
@@ -37,13 +38,30 @@ func CheckShortPath(path string) bool {
 		return false
 	}
 
+	var result bool = true
+	println("Db record => ", len(response.Values))
 	for _, row := range response.Values {
-		fmt.Printf("%s \n", row[0])
+		if row[0] == path {
+			result = false
+			break
+		}
 	}
-
-	return false
+	return result
 }
 
 func SaveShortPath(path string, shortUrl string, longUrl string) bool {
-	return false
+	// const sheetRange string = "A:B"
+	// ctx := context.Background()
+
+	// pwd, _ := os.Getwd()
+	// credentialsJson, _ := ioutil.ReadFile(pwd + "/db/credentials.json")
+	// service, serviceError := sheets.NewService(ctx, option.WithCredentialsJSON(credentialsJson))
+
+	// if serviceError != nil {
+	// 	fmt.Println("Unable connect to service, please try again later!")
+	// 	return false
+	// }
+
+	// response, responseError := service.Spreadsheets.Values.Append(spreadsheetId, sheetRange).Do()
+	return true
 }

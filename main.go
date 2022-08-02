@@ -3,9 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/emre-guler/url-shortener/db"
 	"github.com/emre-guler/url-shortener/validation"
-	"os"
 )
 
 const shortUrl string = "https://www.emreguler.dev/"
@@ -17,9 +19,13 @@ func main() {
 
 	readerObject := bufio.NewReader(os.Stdin)
 	guestLongUrl, _ := readerObject.ReadString('\n')
+	guestLongUrl = strings.Replace(guestLongUrl, "\n", "", -1)
+	guestLongUrl = strings.Replace(guestLongUrl, "\r", "", -1)
 	if validation.IsValidUrl(guestLongUrl) {
 		fmt.Println("Enter the path you want: ")
 		guestShortPath, _ := readerObject.ReadString('\n')
+		guestShortPath = strings.Replace(guestShortPath, "\n", "", -1)
+		guestShortPath = strings.Replace(guestShortPath, "\r", "", -1)
 		var currentUrl = shortUrl + guestShortPath
 		if validation.IsValidUrl(currentUrl) {
 			fmt.Println("Checking db for availability...")
