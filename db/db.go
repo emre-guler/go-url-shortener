@@ -51,7 +51,7 @@ func CheckShortPath(path string) bool {
 }
 
 func SaveShortPath(path string, shortUrl string, longUrl string) bool {
-	const sheetRange string = "A1"
+	const sheetRange string = "A:B"
 	ctx := context.Background()
 
 	pwd, _ := os.Getwd()
@@ -63,17 +63,21 @@ func SaveShortPath(path string, shortUrl string, longUrl string) bool {
 		return false
 	}
 
-	var names []interface{}
-	names = append(names, path)
+	var names [][]interface{}
+	var names2 []interface{}
+	names2 = append(names2, path)
+	names2 = append(names2, longUrl)
+	names = append(names, names2)
 
 	var valueRange sheets.ValueRange
 	valueRange.MajorDimension = strings.ToUpper("ROWS")
-	// todo valueRange.Values = names
+	valueRange.Values = names
 
-	response, err := service.Spreadsheets.Values.Append(spreadsheetId, sheetRange, &valueRange).ValueInputOption("USER_ENTERED").Fields("*").Do()
+	_, err := service.Spreadsheets.Values.Append(spreadsheetId, sheetRange, &valueRange).ValueInputOption("USER_ENTERED").Fields("*").Do()
 
-	fmt.Println(response)
-	fmt.Println(err)
+	if err != nil {
+		fmt.Println("Something went wrong, please try again later.")
+	}
 
 	return true
 }
