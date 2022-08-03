@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
@@ -50,18 +51,29 @@ func CheckShortPath(path string) bool {
 }
 
 func SaveShortPath(path string, shortUrl string, longUrl string) bool {
-	// const sheetRange string = "A:B"
-	// ctx := context.Background()
+	const sheetRange string = "A1"
+	ctx := context.Background()
 
-	// pwd, _ := os.Getwd()
-	// credentialsJson, _ := ioutil.ReadFile(pwd + "/db/credentials.json")
-	// service, serviceError := sheets.NewService(ctx, option.WithCredentialsJSON(credentialsJson))
+	pwd, _ := os.Getwd()
+	credentialsJson, _ := ioutil.ReadFile(pwd + "/db/credentials.json")
+	service, serviceError := sheets.NewService(ctx, option.WithCredentialsJSON(credentialsJson))
 
-	// if serviceError != nil {
-	// 	fmt.Println("Unable connect to service, please try again later!")
-	// 	return false
-	// }
+	if serviceError != nil {
+		fmt.Println("Unable connect to service, please try again later!")
+		return false
+	}
 
-	// response, responseError := service.Spreadsheets.Values.Append(spreadsheetId, sheetRange).Do()
+	var names []interface{}
+	names = append(names, path)
+
+	var valueRange sheets.ValueRange
+	valueRange.MajorDimension = strings.ToUpper("ROWS")
+	// todo valueRange.Values = names
+
+	response, err := service.Spreadsheets.Values.Append(spreadsheetId, sheetRange, &valueRange).ValueInputOption("USER_ENTERED").Fields("*").Do()
+
+	fmt.Println(response)
+	fmt.Println(err)
+
 	return true
 }
