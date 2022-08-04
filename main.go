@@ -24,7 +24,7 @@ func main() {
 		var currentUrl string = shortUrl + shortPath
 		if govalidator.IsURL(currentUrl) {
 			if db.SaveShortPath(shortPath, shortUrl, currentUrl) {
-
+				fmt.Println(".")
 			}
 		}
 	}
