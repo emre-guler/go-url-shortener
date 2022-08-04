@@ -23,8 +23,8 @@ func main() {
 		fmt.Scanln(&shortPath)
 		var currentUrl string = shortUrl + shortPath
 		if govalidator.IsURL(currentUrl) {
-			if db.CheckShortPath(shortUrl) {
-				db.SaveShortPath(shortPath, shortUrl, currentUrl)
+			if db.SaveShortPath(shortPath, shortUrl, currentUrl) {
+
 			}
 		}
 	}
