@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/go-redis/redis/v9"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
 )
@@ -21,6 +23,8 @@ import (
 
 var spreadsheetId string = os.Getenv("URL_SHORTENER_PROJECT_ SPREADSHEET_ID")
 
+const shortUrl string = "https://www.emreguler.dev/"
+
 func authentication() *sheets.Service {
 	ctx := context.Background()
 	pwd, _ := os.Getwd()
@@ -29,28 +33,42 @@ func authentication() *sheets.Service {
 	return service
 }
 
-func CheckShortPath(path string, service *sheets.Service) bool {
-	response, responseError := service.Spreadsheets.Values.Get(spreadsheetId, "A:A").Do()
-	if responseError != nil {
-		return false
-	}
-	var result bool = true
-	for _, row := range response.Values {
-		if row[0] == path {
-			result = false
-			break
-		}
-	}
-	return result
+func connectRedis() *redis.Client {
+	return redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
 }
 
-func SaveShortPath(path string, shortUrl string, longUrl string) bool {
+func CheckShortPath(path string, service *sheets.Service) bool {
+	rdb := connectRedis()
+	cachedValue, _ := rdb.Get(context.Background(), ("path_key_" + path)).Result()
+
+	if cachedValue == "" {
+		response, responseError := service.Spreadsheets.Values.Get(spreadsheetId, "A:A").Do()
+		if responseError != nil {
+			return false
+		}
+		var result bool = true
+		for _, row := range response.Values {
+			if row[0] == path {
+				result = false
+				break
+			}
+		}
+		return result
+	}
+	return false
+}
+
+func SaveShortPath(path string, redirectUrl string) bool {
 	service := authentication()
 	if service != nil {
 		if CheckShortPath(path, service) {
 			var sheetValues [][]interface{}
 			var values []interface{}
-			values = append(values, path, longUrl)
+			values = append(values, path, redirectUrl)
 			sheetValues = append(sheetValues, values)
 
 			_, err := service.Spreadsheets.Values.Append(spreadsheetId, "A:B", &sheets.ValueRange{
@@ -62,7 +80,8 @@ func SaveShortPath(path string, shortUrl string, longUrl string) bool {
 				fmt.Println(err)
 				return false
 			}
-			fmt.Println("Your new link is: ", longUrl)
+			rdb := connectRedis()
+			rdb.Set(context.Background(), ("path_key_" + path), redirectUrl, 3*time.Hour)
 			return true
 		}
 	}

@@ -23,8 +23,8 @@ func main() {
 		fmt.Scanln(&shortPath)
 		var currentUrl string = shortUrl + shortPath
 		if govalidator.IsURL(currentUrl) {
-			if db.SaveShortPath(shortPath, shortUrl, currentUrl) {
-				fmt.Println(".")
+			if db.SaveShortPath(shortPath, redirectUrl) {
+				fmt.Println("Your new link is: ", (shortUrl + shortPath))
 			}
 		}
 	}
