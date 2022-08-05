@@ -7,7 +7,7 @@ import (
 	"github.com/emre-guler/url-shortener/db"
 )
 
-const shortUrl string = "https://www.emreguler.dev/"
+const shortUrlMain string = "https://www.emreguler.dev/"
 
 func main() {
 	fmt.Println("Welcome to url-shortener!")
@@ -21,10 +21,14 @@ func main() {
 		fmt.Println("Enter the path you want: ")
 		var shortPath string
 		fmt.Scanln(&shortPath)
-		var currentUrl string = shortUrl + shortPath
+		var currentUrl string = shortUrlMain + shortPath
 		if govalidator.IsURL(currentUrl) {
 			if db.SaveShortPath(shortPath, redirectUrl) {
-				fmt.Println("Your new link is: ", (shortUrl + shortPath))
+				fmt.Println("Your new link is: ", (shortUrlMain + shortPath))
+			} else {
+				shortUrl, requestUrl := db.GetRedirectData(shortPath)
+				fmt.Println("Already using.")
+				fmt.Println(shortUrl, " => ", requestUrl)
 			}
 		}
 	}

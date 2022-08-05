@@ -20,10 +20,11 @@ import (
 // TODO 3 -> Dockerize.
 // * Finished ✔️
 // TODO 3 -> Use Redis for caching.
+// * Finished ✔️
 
 var spreadsheetId string = os.Getenv("URL_SHORTENER_PROJECT_ SPREADSHEET_ID")
 
-const shortUrl string = "https://www.emreguler.dev/"
+const shortUrlMain string = "https://www.emreguler.dev/"
 
 func authentication() *sheets.Service {
 	ctx := context.Background()
@@ -53,6 +54,7 @@ func CheckShortPath(path string, service *sheets.Service) bool {
 		var result bool = true
 		for _, row := range response.Values {
 			if row[0] == path {
+				rdb.Set(context.Background(), ("path_key_" + path), row[1], 3*time.Hour)
 				result = false
 				break
 			}
@@ -60,6 +62,28 @@ func CheckShortPath(path string, service *sheets.Service) bool {
 		return result
 	}
 	return false
+}
+
+func GetRedirectData(path string) (string, string) {
+	var shortUrl string = ""
+	var requestUrl string = ""
+	service := authentication()
+	rdb := connectRedis()
+	cachedValue, _ := rdb.Get(context.Background(), ("path_key_" + path)).Result()
+	if cachedValue == "" {
+		response, _ := service.Spreadsheets.Values.Get(spreadsheetId, "A:B").Do()
+		for _, row := range response.Values {
+			if row[0] == path {
+				shortUrl = shortUrlMain + path
+				requestUrl = row[1].(string)
+				break
+			}
+		}
+	} else {
+		shortUrl = shortUrlMain + path
+		requestUrl = cachedValue
+	}
+	return shortUrl, requestUrl
 }
 
 func SaveShortPath(path string, redirectUrl string) bool {
